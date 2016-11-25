@@ -1,0 +1,206 @@
+//AJAX CALL USING PLAIN JS
+function apiRecentTopData(fn) {
+  var xhrs = new XMLHttpRequest();
+  xhrs.onreadystatechange = function() {
+    if (xhrs.readyState == 4 && xhrs.status === 200) {
+      var topRecentData = JSON.parse(xhrs.response);
+      fn(topRecentData);
+    } else {
+      // alert(xhr.statusText);
+    }
+  }
+  xhrs.open('GET', "https://fcctop100.herokuapp.com/api/fccusers/top/recent");
+  xhrs.send();
+}
+//-----------------------------------------------
+apiRecentTopData(function(topRecentData) {
+
+  class Main extends React.Component {
+    /* USING JQUERY FOR AJAX CALL MAY DELAY RENDERING THE DATA
+    constructor(props) {
+        super(props);
+        this.state = {
+          topRecentData: []
+        };
+      }
+      //ajax call in React using jquery
+    componentDidMount() {
+      this.serverRequest = $.getJSON(this.props.source, function(result) {
+        this.setState({
+          topRecentData: result
+        });
+      }.bind(this));
+    }
+
+    componentWillUnmount() {
+        this.serverRequest.abort();
+      }*/
+    //-----------------------------  
+    render() {
+      return (
+        <MyTable arrTotal={topRecentData}/>
+      );
+    }
+  }
+
+  class MyRows extends React.Component {
+
+    render() {
+      return (
+        <tr>
+      <th className="positionTable">{this.props.order}</th>
+      <td><a href={"https://www.freecodecamp.com/"+this.props.username} target="_blank">
+            <img style={{width:45, borderRadius:5}} src={this.props.img} className="userimg"/>
+            <span>{" "+this.props.username}</span>
+          </a></td>
+      <td>{this.props.recentRank}</td>
+      <td>{this.props.alltimeRank}</td>
+          </tr>
+      );
+    }
+
+  }
+
+  class MyTable extends React.Component {
+
+    constructor(props) {
+      super(props);
+      this.state = {
+        variableArr: this.recentSort(this.props.arrTotal)
+      };
+
+    }
+
+    mySearchFunction(input) {
+      var tbody = document.getElementById("myBody");
+      var tr = tbody.getElementsByTagName('tr');
+
+      for (var i = 0; i < tr.length; i++) {
+        var td = tr[i].getElementsByTagName('td')[0];
+        if (td) {
+          if (td.innerHTML.toLowerCase().indexOf(input) > -1) {
+            tr[i].style.display = '';
+          } else {
+            tr[i].style.display = 'none';
+          }
+        }
+      }
+    }
+
+    sortAllTime(arr) {
+
+      ///////SORT ARRAY BY ALLTIME/////////////////////
+      function compare(a, b) {
+        if (a.alltime < b.alltime)
+          return 1;
+        if (a.alltime > b.alltime)
+          return -1;
+        return 0;
+      }
+
+      var newArrAllTimeSorted = arr.sort(compare);
+      ////RETURN AN ARRAY OF ROWS USING .map();///////////////////////////////////
+      var userRowAllTime = newArrAllTimeSorted.map((object, i) => {
+
+        return <MyRows
+                key={i+1}
+                order={i+1}
+                img = {object.img}
+                username = {object.username}
+                recentRank = {object.recent}
+                alltimeRank = {object.alltime}
+                    />; //key is an id.
+      });
+      return userRowAllTime;
+
+    }
+
+    recentSort(arr) {
+      ///////SORT ARRAY BY ALLTIME/////////////////////
+      function compare(a, b) {
+        if (a.recent < b.recent)
+          return 1;
+        if (a.recent > b.recent)
+          return -1;
+        return 0;
+      }
+
+      var newArrAllTimeSorted = arr.sort(compare);
+      ////RETURN AN ARRAY OF ROWS USING .map();///////////////////////////////////
+      var userRowRecent = newArrAllTimeSorted.map((object, i) => {
+        return <MyRows
+               key={i+1}
+               order={i+1}
+               img = {object.img}
+               username = {object.username}
+               recentRank = {object.recent}
+               alltimeRank = {object.alltime}
+                   />; //key is an id.
+      });
+
+      return userRowRecent;
+    }
+
+    arrowMethodRec() {
+      console.log("called");
+      var arrRec = document.querySelector("#arrSpanRec");
+      var arrAll = document.querySelector("#arrSpanAll");
+
+      arrRec.innerHTML = ' &dArr;';
+      arrAll.innerHTML = '';
+
+    }
+    arrowMethodAll() {
+      var arrRec = document.querySelector("#arrSpanRec");
+      var arrAll = document.querySelector("#arrSpanAll");
+
+      arrAll.innerHTML = ' &dArr;';
+      arrRec.innerHTML = '';
+
+    }
+
+    render() {
+
+      return (
+        <div>
+        <div className="container"  id="#myHeaderId">
+        
+          <div><span><img id="fccimg" src="https://s3.amazonaws.com/freecodecamp/freecodecamp_logo.svg" alt="FreeCodeCamp logo" /></span><span id="mySpan">Leader Board</span></div>
+        
+          <input className="form-control" type="text" id="searchInput" onChange={(event) => this.mySearchFunction(event.target.value)} placeholder="Search for Campers.."/>
+</div>
+    <div className="container">
+<div className="table-responsive">
+     
+<table  className="table  table-hover ">
+  <thead >
+    <tr>
+      <th className="positionTable">Ranking</th>
+      <th>Camper's Name</th>
+      <th style={{cursor: "pointer"}} onClick={()=>{
+          this.arrowMethodRec(); this.setState({variableArr: this.recentSort(this.props.arrTotal)})}}>Last 30 days<span id="arrSpanRec" > &dArr;</span></th>
+      <th style={{cursor: "pointer"}} onClick={()=>{this.arrowMethodAll(); this.setState({variableArr: this.sortAllTime(this.props.arrTotal)})}}>All Time<span id="arrSpanAll"></span ></th>
+    </tr>
+  </thead>
+  <tbody id="myBody" >
+    
+      {this.state.variableArr}
+    
+   </tbody>
+</table>
+ </div>
+       <footer className="text-center">
+        <hr/>
+        <p>Written and Coded by <a href="https://www.freecodecamp.com/michaelzap94" target="_blank">Michael Zapata</a>.</p>
+    </footer>
+      </div>
+       
+</div>
+      );
+    }
+
+  }
+
+  ReactDOM.render(<Main source="https://fcctop100.herokuapp.com/api/fccusers/top/recent"/>, document.querySelector("#myContainer"));
+
+});
